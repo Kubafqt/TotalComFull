@@ -59,7 +59,7 @@ namespace TotalCommanderFull
                }
             case "two":
                {
-                  SendLeftMouse(new Point(imagePosition.X + xMargin, imagePosition.Y + yMargin));
+                  SendLeftMouse(new Point(imagePosition.X, imagePosition.Y + yMargin));
                   break;
                }
             case "three":

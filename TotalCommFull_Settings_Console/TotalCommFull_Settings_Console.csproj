@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Configurations>Debug;Release;Debug2</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>C:\Users\Kubafe\source\repos\_random\_sourcex\_templatex\_a-startedxx\TotalCommand\TotalComFull\TotalCommanderFull\bin\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug2|AnyCPU'">
+    <OutputPath>C:\Users\Kubafe\source\repos\_random\_sourcex\_templatex\_a-startedxx\TotalCommand\TotalComFull\TotalCommanderFull\bin\Debug\</OutputPath>
+  </PropertyGroup>
+
+</Project>

@@ -19,7 +19,6 @@ namespace TotalCommanderFull
       private static int startY;
       private Point endSearch;
       public static string[] buttonNames = new string[] { "one", "two", "three" };
-      //+save last position
 
       public static List<Images> imagesList = new List<Images>();
 
@@ -154,21 +153,6 @@ namespace TotalCommanderFull
       }
 
       /// <summary>
-      /// Get screenshot of exact area on screen.
-      /// </summary>
-      /// <param name="startScreen">start point of screen (left, up)</param>
-      /// <param name="endScreen">end point of screen (right, down)</param>
-      /// <returns>screenshot bitmap</returns>
-      private Bitmap ExactScreenshot(Point startScreen, Point endScreen)
-      {
-         Size size = new Size(endScreen.X - startScreen.X, endScreen.Y - startScreen.Y);
-         Bitmap screenshot = new Bitmap(size.Width, size.Height);
-         Graphics gfx = Graphics.FromImage(screenshot);
-         gfx.CopyFromScreen(startScreen.X, startScreen.Y, 0, 0, size);
-         return screenshot;
-      }
-
-      /// <summary>
       /// Check if sample is inner image of screen, when first pixel is matched
       /// </summary>
       private bool IsInnerImage(int left, int top, Bitmap sample, Bitmap screen)
@@ -185,5 +169,21 @@ namespace TotalCommanderFull
          }
          return true; //sample is inner image of screen
       }
+
+      /// <summary>
+      /// Get screenshot of exact area on screen.
+      /// </summary>
+      /// <param name="startScreen">start point of screen (left, up)</param>
+      /// <param name="endScreen">end point of screen (right, down)</param>
+      /// <returns>screenshot bitmap</returns>
+      private Bitmap ExactScreenshot(Point startScreen, Point endScreen)
+      {
+         Size size = new Size(endScreen.X - startScreen.X, endScreen.Y - startScreen.Y);
+         Bitmap screenshot = new Bitmap(size.Width, size.Height);
+         Graphics gfx = Graphics.FromImage(screenshot);
+         gfx.CopyFromScreen(startScreen.X, startScreen.Y, 0, 0, size);
+         return screenshot;
+      }
+
    }
 }

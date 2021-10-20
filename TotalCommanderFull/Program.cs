@@ -15,9 +15,8 @@ namespace TotalCommanderFull
    {
       static void Main(string[] args)
       {
-         //HideConsoleWindow();
-         string buttonName;
-         for (int x = 1; x <= 3; x++) //add images to list
+         //add images to list:
+         for (int x = 1; x <= 3; x++) 
          {
             Images.imagesList.Add(new Images(Path.Combine(Application.StartupPath, $"{Images.buttonNames[x - 1]}.png"), new Point(650, 460), new Point(700, 500)));
          }
@@ -26,23 +25,18 @@ namespace TotalCommanderFull
          process.StartInfo.FileName = @"c:\program files\totalcmd\TOTALCMD64.EXE";
          process.Start();
          process.WaitForInputIdle();
-         //System.Threading.Thread.Sleep(2500);
+         //recognize image:
+         string buttonName;
          int repetition = 0;
          Point imagePosition;
-         while (!Images.RecognizeImage(out buttonName, out imagePosition) && repetition < 25) //2,5 sec waiting (25x100ms)
+         while (!Images.RecognizeImage(out buttonName, out imagePosition) && repetition < 30) //3 sec waiting (30x100ms)
          {
             repetition++;
-            System.Threading.Thread.Sleep(250); //do-odladit
+            System.Threading.Thread.Sleep(100);
          }
          ClickCorrectButton(buttonName, imagePosition);
 
-         #region oldComment
-         //while (!iconImage.ImageCheck(iconImage.startSearch, iconImage.endSearch) && repetition < 10) //2 seconds checking
-         //{ repetition++; Thread.Sleep(200); }
-         //total commander check 1, 2, 3 and click button by this (margin by sample) [if not in small rectangle, test big rectangle after, then test full screen, then off]
-         //when get sample LMBclick on margin position (from sample) and getCursorBackToPreviousPosition ... ;
-         //at last close this program - easy
-         #endregion
+         //next - settings for images, search location, ... - second winform app -> db or file for both programs
 
       }
 
@@ -115,31 +109,6 @@ namespace TotalCommanderFull
       /// </summary>
       public static void RMBClick()
       { mouse_event((int)MouseEventFlags.RIGHTDOWN | (int)MouseEventFlags.RIGHTUP, Cursor.Position.X, Cursor.Position.Y, 0, 0); }
-      #endregion
-
-      #region Console showing
-      //hide console:
-      [DllImport("kernel32.dll")]
-      static extern IntPtr GetConsoleWindow();
-      [DllImport("user32.dll")]
-      static extern bool HideWindow(IntPtr hWnd, int nCmdShow);
-      const int SW_HIDE = 0;
-      const int SW_SHOW = 1;
-      /// <summary>
-      /// Show or hide console window.
-      /// </summary>
-      /// <param name="type">Type "hide" to hide console window instead of show.</param>
-      public static void HideConsoleWindow(string type = "hide")
-      {
-         var handle = GetConsoleWindow(); //for hide console window
-         var showing = type.ToLower() == "hide" ? SW_HIDE : SW_SHOW;
-         HideWindow(handle, showing); //hide console window
-      }
-
-      //determine if console window is visible:
-      [DllImport("user32.dll")]
-      [return: MarshalAs(UnmanagedType.Bool)]
-      static extern bool IsWindowVisible(IntPtr hWnd);
       #endregion
 
    }

@@ -42,7 +42,6 @@ namespace TotalCommanderFull
 
       private static void ClickCorrectButton(string buttonName, Point imagePosition)
       {
-         Point lastCursorPosition = Cursor.Position;
          int xMargin = 110;
          int yMargin = 32;
          switch (buttonName)
@@ -54,21 +53,20 @@ namespace TotalCommanderFull
                }
             case "one": //potom asi dictionary<string,point>
                {
-                  SendLeftMouse(new Point(imagePosition.X - xMargin, imagePosition.Y + yMargin));
+                  LMBclick(new Point(imagePosition.X - xMargin, imagePosition.Y + yMargin), true);
                   break;
                }
             case "two":
                {
-                  SendLeftMouse(new Point(imagePosition.X, imagePosition.Y + yMargin));
+                  LMBclick(new Point(imagePosition.X, imagePosition.Y + yMargin), true);
                   break;
                }
             case "three":
                {
-                  SendLeftMouse(new Point(imagePosition.X + xMargin, imagePosition.Y + yMargin));
+                  LMBclick(new Point(imagePosition.X + xMargin, imagePosition.Y + yMargin), true);
                   break;
                }
          }
-         Cursor.Position = lastCursorPosition;
       }
 
       #region HandleMouse
@@ -99,6 +97,22 @@ namespace TotalCommanderFull
       /// </summary>
       public static void LMBclick()
       { mouse_event((int)MouseEventFlags.LEFTDOWN | (int)MouseEventFlags.LEFTUP, Cursor.Position.X, Cursor.Position.Y, 0, 0); }
+
+      /// <summary>
+      /// Send left mouse click on selected position and take back cursor to last position if selected.
+      /// </summary>
+      /// <param name="point">Point for position to send left mouse click.</param>
+      /// <param name="lastPos">Take back cursor to lastPosition before left mouse click. True: take back cursor to last position, Default: false (not take back cursor to last position).</param>
+      public static void LMBclick(Point point, bool lastPos = false)
+      {
+         Point lastPosition = Cursor.Position;
+         Cursor.Position = point;
+         mouse_event((int)MouseEventFlags.LEFTDOWN | (int)MouseEventFlags.LEFTUP, Cursor.Position.X, Cursor.Position.Y, 0, 0);
+         if (lastPos)
+         {
+            Cursor.Position = lastPosition;
+         }
+      }
       /// <summary>
       /// Send middle mouse click.
       /// </summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Forms;
+using System.IO;
 
 namespace TotalCommanderFull
 {
@@ -11,8 +12,8 @@ namespace TotalCommanderFull
       private Bitmap sample;
       private string samplePath;
       private Point startSearch;
-      private static int startX;
-      private static int startY;
+      private int startX;
+      private int startY;
       private Point endSearch;
       private Point checkScreenStart;
       public static string[] buttonNames = new string[] { "one", "two", "three" };
@@ -51,6 +52,7 @@ namespace TotalCommanderFull
       {
          Marshal.FreeHGlobal(intPtr);
       }
+
       #endregion
 
       /// <summary>
@@ -72,32 +74,30 @@ namespace TotalCommanderFull
       }
 
       /// <summary>
-      /// 
+      /// Get button name and image position for mouse click from screenshot.
       /// </summary>
       /// <returns></returns>
       public static bool RecognizeImage(out string imageButtonID, out Point ImagePosition)
       {
+         Point lastPos;
          int imageNumberID = 0;
-         string resolution = $"CONCAT({Screen.PrimaryScreen.Bounds.Width}, 'x', {Screen.PrimaryScreen.Bounds.Height})";
-         Point lastPos = imagesList[0].startSearch.X != 0 ? DB_Access.GetLastPosition(resolution) : new Point(-1, -1);
          for (int x = 0; x < imagesList.Count; x++)
          {
             using (Images sample = imagesList[x])
             {
-               if (sample.ImageCheck(sample.startSearch, sample.endSearch, sample.checkScreenStart, ref lastPos))
+               if (sample.ImageCheck(sample.startSearch, sample.endSearch, sample.checkScreenStart, out lastPos))
                {
                   imageButtonID = buttonNames[imageNumberID];
-                  ImagePosition = new Point(lastPos.X + startX, lastPos.Y + startY);
+                  ImagePosition = new Point(lastPos.X + sample.startX, lastPos.Y + sample.startY);
                   sample.Dispose();
-                  return true; //getted image
+                  return true; //image getted
                }
                sample.Dispose();
-               imageNumberID++;
             }
+            imageNumberID++;
          }
          imageButtonID = string.Empty;
-         lastPos = new Point(-1, -1);
-         ImagePosition = lastPos;
+         ImagePosition = new Point(-1, -1);
          return false;
       }
 
@@ -107,34 +107,36 @@ namespace TotalCommanderFull
       /// <param name="startSearch">start searching point on display screen</param>
       /// <param name="endSearch">end searching point on display screen</param>
       /// <returns>True: sample image is appearing on exact screenshot, False: sample image is not appearing on exact screenshot.</returns>
-      public bool ImageCheck(Point startSearch, Point endSearch, Point checkScreenStart, ref Point lastPos)
+      public bool ImageCheck(Point startSearch, Point endSearch, Point checkScreenStart, out Point lastPos)
       {
-         string resolution = $"CONCAT({Screen.PrimaryScreen.Bounds.Width}, 'x', {Screen.PrimaryScreen.Bounds.Height})";
          using (Bitmap screen = ExactScreenshot(startSearch, endSearch))
          {
-            for (int x = checkScreenStart.X; x != checkScreenStart.X - 1; x++)
+            for (int y = checkScreenStart.Y; y != checkScreenStart.Y - 1; y++)
             {
-               for (int y = checkScreenStart.Y; y != checkScreenStart.Y - 1 /*(sample.Height - 1)*/; y++)
+               for (int x = checkScreenStart.X; x != checkScreenStart.X - 1; x++)
                {
-                  if (sample.GetPixel(0, 0) == screen.GetPixel(x, y) && IsInnerImage(x, y, sample, screen))
+
+                  if (sample.GetPixel(0, 0) == screen.GetPixel(x, y) && IsInnerImage(x, y, sample, screen)) //sample is appearing on screenshot
                   {
-                     //lastPosition = new Point(x, y);
-                     lastPos = new Point(x, y); //lastPosition;
-                     Point newLastPos = new Point(-1, -1);
+                     lastPos = new Point(x, y); //lastPosition
+                     string resolution = $"CONCAT({Screen.PrimaryScreen.Bounds.Width}, 'x', {Screen.PrimaryScreen.Bounds.Height})";
                      screen.Dispose();
-                     if ((startSearch.X == 0 || endSearch.X == Screen.PrimaryScreen.Bounds.Width))
+                     if (startSearch.X == 0 || endSearch.X == Screen.PrimaryScreen.Bounds.Width)
                      {
                         Point newStartSearch = new Point(lastPos.X - 10, lastPos.Y - 10);
                         Point newEndSearch = new Point(lastPos.X + 10 + sample.Width, lastPos.Y + 10 + sample.Height);
                         Point differenceStartSearch = new Point(newStartSearch.X - startSearch.X, newStartSearch.Y - startSearch.Y);
-                        newLastPos = new Point(lastPos.X - differenceStartSearch.X, lastPos.Y - differenceStartSearch.Y);
-                        //bool update = 
+                        Point newLastPos = new Point(lastPos.X - differenceStartSearch.X, lastPos.Y - differenceStartSearch.Y);
                         DB_Access.SavePoints(resolution, newLastPos, newStartSearch, newEndSearch);
                      }
-                     else if (lastPos != DB_Access.GetLastPosition(resolution))
+                     else //startsearch and endsearch is not default
                      {
-                        newLastPos = newLastPos.X == -1 ? lastPos : newLastPos;
-                        DB_Access.UpdateLastPos(newLastPos, resolution);
+                        DB_Access.ResolutionAppendToTextFile();
+                        Point dbLastPos = DB_Access.GetLastPosition(resolution);
+                        if (lastPos != dbLastPos)
+                        {
+                           DB_Access.UpdateLastPos(lastPos, dbLastPos, resolution);
+                        }
                      }
                      return true; //sample is on screen
                   }
@@ -159,9 +161,9 @@ namespace TotalCommanderFull
       /// </summary>
       private bool IsInnerImage(int left, int top, Bitmap sample, Bitmap screen)
       {
-         for (int x = 0; x < sample.Width; x++)
+         for (int y = 0; y < sample.Height; y++)
          {
-            for (int y = 0; y < sample.Height; y++)
+            for (int x = 0; x < sample.Width; x++)
             {
                if (sample.GetPixel(x, y) != screen.GetPixel(left + x, top + y))
                {

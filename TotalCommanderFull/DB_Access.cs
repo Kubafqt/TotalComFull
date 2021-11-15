@@ -1,8 +1,8 @@
 ﻿using System.Data.SqlClient;
 using System.Windows.Forms;
 using System.Drawing;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
 namespace TotalCommanderFull
 {
@@ -23,12 +23,7 @@ namespace TotalCommanderFull
          SqlCommand selectCommand = new SqlCommand(selectCmdText, connection);
          connection.Open();
          SqlDataReader reader = selectCommand.ExecuteReader();
-         string filePath = Path.Combine(Application.StartupPath, "resSaved.txt");
-         List<string> fileLines = new List<string>(File.ReadAllLines(filePath));
-         if (!fileLines.Contains(resolution))
-         {
-            File.AppendAllText(filePath, resolution + "\n");
-         }
+         ResolutionAppendToTextFile();
          while (reader.Read())
          {
             if (resolution == (string)reader["Resolution"])
@@ -44,19 +39,35 @@ namespace TotalCommanderFull
       /// <summary>
       /// 
       /// </summary>
+      public static void ResolutionAppendToTextFile()
+      {
+         string resolution = $"{Screen.PrimaryScreen.Bounds.Width}x{Screen.PrimaryScreen.Bounds.Height}";
+         string filePath = Path.Combine(Application.StartupPath, "resSaved.txt");
+         List<string> fileLines = new List<string>(File.ReadAllLines(filePath));
+         if (!fileLines.Contains(resolution))
+         {
+            File.AppendAllText(filePath, resolution + "\n");
+         }
+      }
+
+      /// <summary>
+      /// 
+      /// </summary>
       /// <param name="resolution"></param>
       /// <param name="startSearch"></param>
       /// <param name="endSearch"></param>
       public static void GetSearchPoints(string resolution, out Point startSearch, out Point endSearch, out Point checkScreenStart)
       {
+         //default points location:
+         startSearch = new Point(-1, -1);
+         endSearch = new Point(-1, -1);
+         checkScreenStart = new Point(-1, -1);
+         //get points from db:
          SqlConnection connection = new SqlConnection(connString);
          string selectCmdText = $"SELECT startSearch, endSearch, LastPosition FROM ImagePointTable WHERE Resolution = {resolution};";
          SqlCommand selectCommand = new SqlCommand(selectCmdText, connection);
          connection.Open();
          SqlDataReader reader = selectCommand.ExecuteReader();
-         startSearch = new Point(-1, -1);
-         endSearch = new Point(-1, -1);
-         checkScreenStart = new Point(-1, -1);
          while (reader.Read())
          {
             string startSearchString = (string)reader["StartSearch"];
@@ -117,15 +128,14 @@ namespace TotalCommanderFull
       /// </summary>
       /// <param name="lastPos"></param>
       /// <param name="resolution"></param>
-      public static void UpdateLastPos(Point lastPos, string resolution)
+      public static void UpdateLastPos(Point lastPos, Point lastPositionFromDB, string resolution)
       {
-         Point lastPositionFromDB = GetLastPosition(resolution);
-         if (lastPos != lastPositionFromDB && lastPositionFromDB.X != -1)
+         if (lastPositionFromDB.X != -1) //exist in db
          {
             string cmdText = $"UPDATE ImagePointTable SET LastPosition = CONCAT({lastPos.X}, ';', {lastPos.Y}) WHERE Resolution = {resolution};";
             ExecuteNonQuery(cmdText);
          }
-         else if (lastPositionFromDB.X == -1)
+         else //not exist in db
          {
             string cmdText = $"INSERT INTO ImagePointTable (LastPosition) VALUES (CONCAT({lastPos.X}, ';', {lastPos.Y})) WHERE Resolution = {resolution};";
             ExecuteNonQuery(cmdText);

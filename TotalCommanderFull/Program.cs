@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
 
 namespace TotalCommanderFull
 {
    class Program
-   {
+   { 
       /// <summary>
       /// 
       /// </summary>
       static void Main(string[] args)
       {
+         //Icon.SetConsoleIcon(Application.StartupPath + $"\\images\\icon.ico");
          Point startSearch, endSearch, checkScreenStart;
          GetSearchPoints(out startSearch, out endSearch, out checkScreenStart);
          //start total commander process:
@@ -26,18 +27,19 @@ namespace TotalCommanderFull
          string resolution = $"{Screen.PrimaryScreen.Bounds.Width}x{Screen.PrimaryScreen.Bounds.Height}";
          string[] fileLines = File.ReadAllLines(Path.Combine(Application.StartupPath, "resSaved.txt"));
          List<string> fileLinesList = new List<string>(fileLines); //faster access than db
-         int sleepTime = !fileLinesList.Contains(resolution) ? 2500 : 0;
+         int sleepTime = !fileLinesList.Contains(resolution) ? 4000 : 0;
          System.Threading.Thread.Sleep(sleepTime);
          //recognize image:
          int repetition = 0;
          int maxRepetition = 30;
          string buttonName;
          Point imagePosition;
+         bool checkedAgain = false;
          RecognizeImage:
          //add images to list:
          for (int x = 1; x <= 3; x++)
          {
-            //then load from db
+            //then load from db (?)
             Images.imagesList.Add(new Images(Application.StartupPath + $"\\images\\{Images.buttonNames[x - 1]}.png", startSearch, endSearch, checkScreenStart)); 
          }
          while (!Images.RecognizeImage(out buttonName, out imagePosition) && repetition < maxRepetition) //3 sec waiting (30x100ms)
@@ -45,11 +47,12 @@ namespace TotalCommanderFull
             repetition++;
             System.Threading.Thread.Sleep(100);
          }
-         if (imagePosition.X == -1)
+         if (imagePosition.X == -1 && !checkedAgain)
          {
             Images.imagesList.Clear();
             GetSearchPoints(out startSearch, out endSearch, out checkScreenStart, false);
             maxRepetition = 10;
+            checkedAgain = true;
             goto RecognizeImage;
          }
          ClickCorrectButton(buttonName, imagePosition);
